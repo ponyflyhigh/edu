@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>简易语音采集并发送 WebSocket</title>
+</head>
+<body>
+  <h2>录音并通过WebSocket发送PCM数据</h2>
+  <button id="start">开始录音</button>
+  <button id="stop">停止录音</button>
+  <pre id="log"></pre>
+
+<script>
+  const WS_URL = "ws://localhost:8765";
+  let ws;
+  let audioContext;
+  let processor;
+  let input;
+  let stream;
+
+  const logElem = document.getElementById('log');
+  function log(msg) {
+    logElem.textContent += msg + '\n';
+    console.log(msg);
+  }
+
+  function floatTo16BitPCM(input) {
+    const output = new Int16Array(input.length);
+    for (let i = 0; i < input.length; i++) {
+      let s = Math.max(-1, Math.min(1, input[i]));
+      output[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return output;
+  }
+
+  document.getElementById('start').onclick = async () => {
+    ws = new WebSocket(WS_URL);
+    ws.binaryType = 'arraybuffer';
+
+    ws.onopen = () => {
+      log("✅ WebSocket 已连接");
+    };
+    ws.onerror = e => log("❌ WebSocket 错误: " + e.message);
+    ws.onclose = () => log("ℹ️ WebSocket 已关闭");
+
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioContext = new AudioContext({ sampleRate: 16000 });
+    input = audioContext.createMediaStreamSource(stream);
+    processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+    input.connect(processor);
+    processor.connect(audioContext.destination);
+
+    processor.onaudioprocess = (e) => {
+      const floatData = e.inputBuffer.getChannelData(0);
+      const pcmData = floatTo16BitPCM(floatData);
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(pcmData.buffer);
+        log(`发送PCM数据: 字节长度=${pcmData.byteLength}`);
+      }
+    };
+  };
+
+  document.getElementById('stop').onclick = () => {
+    if (processor) processor.disconnect();
+    if (input) input.disconnect();
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    if (audioContext) audioContext.close();
+    if (ws) ws.close();
+    log("🛑 录音停止，连接关闭");
+  };
+</script>
+
+</body>
+</html>

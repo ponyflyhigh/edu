@@ -15,7 +15,7 @@ CHUNK = 320  # 20ms帧长
 VAD_AGGRESSIVENESS = 2  # VAD灵敏度 (0-3)
 SILENCE_THRESHOLD = 15   # 连续静音帧数阈值（300ms）
 PRE_ROLL = 10            # 预录制帧数（保留触发前的音频）
-OUTPUT_FILE = "output.wav"
+OUTPUT_FILE = "tmp/output.wav"
 
 # 配置阿里云API Key（替换为你的实际值）
 
