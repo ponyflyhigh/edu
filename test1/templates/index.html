@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <title>流式语音对话示例</title>
+</head>
+<body>
+    <h1>流式语音对话示例</h1>
+    <button id="start">开始说话</button>
+    <button id="stop" disabled>停止</button>
+    <div id="transcript">识别文本：</div>
+
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/webrtc.js') }}"></script>
+
+</body>
+</html>

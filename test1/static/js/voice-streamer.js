@@ -12,11 +12,13 @@ class VoiceStreamer {
 
     startStreaming() {
         if (this.isRecording) return;
+        console.log("开始录音...");
 
         navigator.mediaDevices.getUserMedia({ audio: true })
             .then(stream => {
                 this.mediaStream = stream;
                 this.isRecording = true;
+                console.log("麦克风权限已获取，音频流已创建");
 
                 const source = this.audioContext.createMediaStreamSource(stream);
                 const processor = this.audioContext.createScriptProcessor(
@@ -97,6 +99,7 @@ class VoiceStreamer {
     stopStreaming() {
         if (!this.isRecording) return;
 
+        console.log("停止录音，发送结束信号...");
         this.isRecording = false;
         this.socket.emit('audio_chunk', {
             chunk: new ArrayBuffer(0),
